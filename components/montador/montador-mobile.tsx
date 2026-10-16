@@ -21,10 +21,6 @@ export function MontadorMobile() {
       <FiltroQuinzena value={quinzena} onChange={setQuinzena} />
       <FiltroDiaSemana value={dia} onChange={setDia} />
 
-      <p className="text-sm text-slate-500">
-        Selecionado: {quinzena} · {dia}
-      </p>
-
       <MenuInferior
         totalCreditos={totalCreditos}
         onAdicionarTurma={abrirDisciplinasOfertadas}
