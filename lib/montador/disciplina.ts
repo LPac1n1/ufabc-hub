@@ -152,3 +152,24 @@ export function formatHora(x: number) {
   const m = Math.round((x - h) * 60);
   return `${String(h).padStart(2, "0")}h${m ? String(m).padStart(2, "0") : ""}`;
 }
+
+export const rotuloPeriodicidade = (q: Quinzena) => (q === 0 ? "Semanal" : `Q${q}`);
+export const romano = (q: Quinzena) => (q === 1 ? "I" : "II");
+export const formatTpie = (d: Disciplina) => `${d.tpie.t}-${d.tpie.p}-${d.tpie.i}-${d.tpie.e}`;
+export const formatCreditos = (n: number) => `${n} ${n === 1 ? "crédito" : "créditos"}`;
+export const quinzenasDe = (d: Disciplina) =>
+  [...new Set(d.aulas.map((s) => s.quinzena).filter((q) => q > 0))].sort() as Quinzena[];
+export const nomesDocentes = (d: Disciplina) => [...new Set(d.aulas.flatMap((s) => s.docentes))];
+
+export function getDocentesPorTipo(d: Disciplina) {
+  const mapa = new Map<string, { tipo: Tipo; nome: string }>();
+
+  for (const s of d.aulas) {
+    const nomes = s.docentes.length > 0 ? s.docentes : ["Docente a definir"];
+    for (const nome of nomes) {
+      mapa.set(`${s.tipo}|${nome}`, { tipo: s.tipo, nome });
+    }
+  }
+
+  return Array.from(mapa.values());
+}
