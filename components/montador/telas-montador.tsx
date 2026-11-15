@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { DisciplinasOfertadas } from "@/components/montador/disciplinas-ofertadas";
-import { MontadorMobile } from "@/components/montador/montador-mobile";
 import type { TurmaPropsData } from "@/services/quadrimestre";
+import { GrandeMontador } from "./grade-montador";
 
 export function TelasMontador({ turmas}: { turmas: TurmaPropsData[] }) {
   const [pesquisando, setPesquisando] = useState(false);
@@ -47,7 +47,7 @@ export function TelasMontador({ turmas}: { turmas: TurmaPropsData[] }) {
           pesquisando ? "-left-full" : "left-0"
         }`}
       >
-        <MontadorMobile onAdicionarTurma={abrirPesquisa} />
+        <GrandeMontador disciplinas={[]} quadrimestre="2024.1" onRemover={()=> {}} onDesfazer={()=> {}} onAdicionarTurma={abrirPesquisa} />
       </div>
 
       <div
