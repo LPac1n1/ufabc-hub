@@ -1,0 +1,24 @@
+
+@theme {
+  --color-grade-bg: #eaf0ee;
+  --color-grade-surface: #f8fbfa;
+  --color-grade-line: #d3dfdc;
+  --color-grade-ink: #12302b;
+  --color-grade-mute: #5b7772;
+  --color-grade-accent: #148375;
+  --color-grade-danger: #b64f61;
+  --color-grade-on: #14201e;
+
+  --color-disc-1: #4a93c6;
+  --color-disc-2: #ecc93f;
+  --color-disc-3: #b66cca;
+  --color-disc-4: #e6854f;
+  --color-disc-5: #e8806f;
+  --color-disc-6: #52b99c;
+  --color-disc-7: #d4a57d;
+}
+
+@theme inline {
+  --font-display: var(--font-bricolage), system-ui, sans-serif;
+  --font-mono: var(--font-martian), ui-monospace, monospace;
+}
