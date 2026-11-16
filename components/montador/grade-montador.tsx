@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { DisciplinaCard } from "./disciplina-card";
 import { Grade, type Filtro } from "./grade";
 import { MenuInferior } from "./menu-inferior";
+import { PopUpDetalhes } from "./popup-detalhes";
 import type { Disciplina } from "@/lib/montador/disciplina";
 
 const FILTROS: { id: Filtro; label: string }[] = [
@@ -24,13 +25,21 @@ type Props = {
 
 export function GrandeMontador({ disciplinas, quadrimestre, onRemover, onDesfazer, onAdicionarTurma }: Props) {
   const [filtro, setFiltro] = useState<Filtro>("all");
-
+  const [detalhe, setDetalhe] = useState<Disciplina | null>(null);
+  const [aberto, setAberto] = useState(false);
   const [desfazer, setDesfazer] = useState<Disciplina | null>(null);
 
   const totalCreditos = disciplinas.reduce((soma, d) => soma + d.creditos, 0);
 
+  const abrir = useCallback((d: Disciplina) => {
+    setDetalhe(d);
+    setAberto(true);
+  }, []);
+
+  const fechar = useCallback(() => setAberto(false), []);
 
   function remover(d: Disciplina) {
+    setAberto(false);
     setDesfazer(d);
     onRemover(d.id);
   }
@@ -74,7 +83,7 @@ export function GrandeMontador({ disciplinas, quadrimestre, onRemover, onDesfaze
         ))}
       </div>
 
-      <Grade disciplinas={disciplinas} filtro={filtro} onSelect={()=> {}} />
+      <Grade disciplinas={disciplinas} filtro={filtro} onSelect={abrir} />
 
       <p className="mx-1 mt-3 flex flex-wrap items-center gap-1.5 text-xs text-grade-mute">
         <i className={`${tag} not-italic`}>Q1</i>
@@ -89,12 +98,13 @@ export function GrandeMontador({ disciplinas, quadrimestre, onRemover, onDesfaze
         ) : (
           <ul className="grid gap-2">
             {disciplinas.map((d) => (
-              <DisciplinaCard key={d.id} disciplina={d} onRemover={remover} />
+              <DisciplinaCard key={d.id} disciplina={d} onDetalhes={abrir} onRemover={remover} />
             ))}
           </ul>
         )}
       </section>
 
+      <PopUpDetalhes disciplina={detalhe} open={aberto} onClose={fechar} />
 
       <MenuInferior totalCreditos={totalCreditos} onAdicionarTurma={adicionarTurma} />
 

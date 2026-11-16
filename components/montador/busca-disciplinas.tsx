@@ -1,7 +1,8 @@
 "use client";
 
-import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { IconeBusca } from "@/components/icones";
+import { PopUpDetalhes } from "./popup-detalhes";
 import { TurmaBuscaCard } from "./turma-busca-card";
 import { getEstado } from "@/lib/montador/conflitos";
 import { nomesDocentes, type Disciplina } from "@/lib/montador/disciplina";
@@ -74,6 +75,8 @@ export function BuscaDisciplinas({ ativa, disciplinas, naGrade, onAdicionar, onR
   const [campus, setCampus] = useState(TODOS);
   const [verificar, setVerificar] = useState(true);
   const [quantidade, setQuantidade] = useState(TAMANHO_DO_LOTE);
+  const [detalhe, setDetalhe] = useState<Disciplina | null>(null);
+  const [aberto, setAberto] = useState(false);
   const tituloRef = useRef<HTMLHeadingElement>(null);
   const fimDaListaRef = useRef<HTMLDivElement>(null);
 
@@ -128,6 +131,9 @@ export function BuscaDisciplinas({ ativa, disciplinas, naGrade, onAdicionar, onR
 
   // Qualquer mudança de filtro volta para o primeiro lote.
   const mudar = <T,>(set: (v: T) => void) => (v: T) => { set(v); setQuantidade(TAMANHO_DO_LOTE); };
+
+  const abrir = useCallback((d: Disciplina) => { setDetalhe(d); setAberto(true); }, []);
+  const fechar = useCallback(() => setAberto(false), []);
 
   return (
     <main className="mx-auto w-full max-w-lg px-3 pb-12">
@@ -201,7 +207,7 @@ export function BuscaDisciplinas({ ativa, disciplinas, naGrade, onAdicionar, onR
               key={d.id}
               disciplina={d}
               estado={getEstado(d, naGrade, verificar)}
-              onInfo={()=>{}}
+              onInfo={abrir}
               onAdicionar={onAdicionar}
               onRemover={onRemover}
             />
@@ -215,6 +221,7 @@ export function BuscaDisciplinas({ ativa, disciplinas, naGrade, onAdicionar, onR
         </div>
       )}
 
+      <PopUpDetalhes disciplina={detalhe} open={aberto} onClose={fechar} />
     </main>
   );
 }
