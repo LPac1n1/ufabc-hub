@@ -4,7 +4,7 @@ import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { IconeBusca } from "@/components/icones";
 import { MenuPesquisa } from "@/components/montador/menu-pesquisa";
 import { OcultarConflitos } from "@/components/montador/ocultar-conflitos";
-import { PopupMaisInformacoes } from "@/components/montador/popup-mais-informacoes";
+import { PopupMaisInformacoes } from "@/components/montador/popup-detalhes";
 import TurmaCardBusca from "@/components/montador/turma-card-busca";
 import { paraInformacoesTurma } from "@/lib/montador/informacoes-turma";
 import {

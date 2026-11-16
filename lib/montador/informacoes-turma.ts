@@ -1,4 +1,4 @@
-import type { InformacoesTurma } from "@/components/montador/popup-mais-informacoes";
+import type { InformacoesTurma } from "@/components/montador/popup-detalhes";
 import { nomesDocentes } from "@/lib/montador/ofertadas";
 import type { TurmaPropsData } from "@/services/quadrimestre";
 
