@@ -65,8 +65,7 @@ export function IconeMarcador(props: IconeProps) {
 export function IconeAdicionar(props: IconeProps) {
   return (
     <Icone {...props}>
-      <circle cx="12" cy="12" r="10" />
-      <path d="M8 12h8M12 8v8" />
+     <path d="M12 5v14" /><path d="M5 12h14" />
     </Icone>
   );
 }
