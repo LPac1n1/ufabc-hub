@@ -18,6 +18,7 @@ export type Disciplina = {
   codigo: string; 
   sigla: string;
   nome: string;
+  codigoTurma: string; // código completo da turma, ex.: "DA1BCM0506-15SA" (usado na URL)
   turma: string;
   turno: string;
   campus: string;
@@ -119,6 +120,12 @@ function getAula(t: TurmaPropsData): Aula[] {
   );
 }
 
+const getCodigoCompleto = (t: TurmaPropsData) => {
+  if (t.codigo.length > 4) return t.codigo; // já veio no formato completo
+  const turno = String(t.turno ?? "").trim().toUpperCase();
+  return `${turno}${t.codigo}${t.disciplina.codigo}${t.campus ?? ""}`;
+};
+
 export function toDisciplina(t: TurmaPropsData): Disciplina {
   return {
     id: t.id,
@@ -126,6 +133,7 @@ export function toDisciplina(t: TurmaPropsData): Disciplina {
     codigo: t.disciplina.codigo,
     sigla: getSigle(t.disciplina.nome),
     nome: t.disciplina.nome,
+    codigoTurma: getCodigoCompleto(t),
     turma: getTurma(t.codigo),
     turno: getTurno(t.turno),
     campus: t.campus ?? "",

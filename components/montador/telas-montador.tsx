@@ -3,18 +3,40 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BuscaDisciplinas } from "@/components/montador/busca-disciplinas";
 import { GrandeMontador } from "@/components/montador/grade-montador";
+import { PopUpConflito } from "@/components/montador/popup-conflito";
 import { CORES, toDisciplina } from "@/lib/montador/disciplina";
+import {
+  escreverIdsNaUrl,
+  lerIdsDaUrl,
+  lerIdsSalvos,
+  mesmasTurmas,
+  salvarIds,
+} from "@/lib/montador/turmas-url";
 import type { TurmaPropsData } from "@/services/quadrimestre";
 
 type TurmaNaGrade = { id: string; cor: number };
+type Conflito = { antigas: string[]; novas: string[] }; // códigos de turma
+
+const paraGrade = (ids: string[]): TurmaNaGrade[] =>
+  ids.map((id, i) => ({ id, cor: i % CORES.length }));
 
 export function TelasMontador({ turmas }: { turmas: TurmaPropsData[] }) {
   const [pesquisando, setPesquisando] = useState(false);
   const [grade, setGrade] = useState<TurmaNaGrade[]>([]);
   const origemDoFoco = useRef<HTMLElement | null>(null);
+  const iniciou = useRef(false);
+
+  const [pronto, setPronto] = useState(false);
+  const [conflito, setConflito] = useState<Conflito | null>(null);
 
   const todas = useMemo(() => turmas.map((turma) => toDisciplina(turma)), [turmas]);
   const porId = useMemo(() => new Map(todas.map((d) => [d.id, d])), [todas]);
+
+  const porCodigo = useMemo(
+    () => new Map(todas.map((d) => [d.codigoTurma.toUpperCase(), d])),
+    [todas],
+  );
+
   const naGrade = useMemo(
     () =>
       grade.flatMap(({ id, cor }) => {
@@ -23,6 +45,40 @@ export function TelasMontador({ turmas }: { turmas: TurmaPropsData[] }) {
       }),
     [grade, porId],
   );
+
+  useEffect(() => {
+    if (iniciou.current) return;
+    iniciou.current = true;
+
+    const validos = (codigos: string[]) => [
+      ...new Set(codigos.flatMap((c) => porCodigo.get(c.toUpperCase())?.codigoTurma ?? [])),
+    ];
+    const daUrl = validos(lerIdsDaUrl());
+    const salvas = validos(lerIdsSalvos());
+
+    if (daUrl.length > 0 && salvas.length > 0 && !mesmasTurmas(daUrl, salvas)) {
+      setConflito({ antigas: salvas, novas: daUrl });
+    } else {
+      setGrade(paraGrade(idsDosCodigos(daUrl.length > 0 ? daUrl : salvas)));
+    }
+    setPronto(true);
+  }, [porCodigo]);
+
+  useEffect(() => {
+    if (!pronto || conflito) return;
+    const codigos = grade.flatMap((g) => porId.get(g.id)?.codigoTurma ?? []);
+    salvarIds(codigos);
+    escreverIdsNaUrl(codigos);
+  }, [grade, pronto, conflito, porId]);
+
+  const idsDosCodigos = (codigos: string[]) =>
+    codigos.flatMap((c) => porCodigo.get(c.toUpperCase())?.id ?? []);
+
+  function resolverConflito(manter: "antigas" | "novas") {
+    if (!conflito) return;
+    setGrade(paraGrade(idsDosCodigos(conflito[manter])));
+    setConflito(null);
+  }
 
   function adicionar(id: string) {
     setGrade((atual) => {
@@ -70,7 +126,7 @@ export function TelasMontador({ turmas }: { turmas: TurmaPropsData[] }) {
   return (
     <div data-pesquisando={pesquisando}>
       <div
-        inert={pesquisando}
+        inert={pesquisando || conflito !== null}
         className={`relative transition-[left] duration-300 ease-out motion-reduce:transition-none ${
           pesquisando ? "-left-full" : "left-0"
         }`}
@@ -84,7 +140,7 @@ export function TelasMontador({ turmas }: { turmas: TurmaPropsData[] }) {
       </div>
 
       <div
-        inert={!pesquisando}
+        inert={!pesquisando || conflito !== null}
         className={`fixed inset-0 z-20 overflow-y-auto overscroll-contain bg-grade-bg transition-[translate,visibility] duration-300 ease-out motion-reduce:transition-none ${
           pesquisando ? "" : "invisible translate-x-full"
         }`}
@@ -98,6 +154,15 @@ export function TelasMontador({ turmas }: { turmas: TurmaPropsData[] }) {
           onVoltar={fecharPesquisa}
         />
       </div>
+
+      {conflito && (
+        <PopUpConflito
+          antigas={conflito.antigas.flatMap((c) => porCodigo.get(c.toUpperCase()) ?? [])}
+          novas={conflito.novas.flatMap((c) => porCodigo.get(c.toUpperCase()) ?? [])}
+          onManterAntigas={() => resolverConflito("antigas")}
+          onManterNovas={() => resolverConflito("novas")}
+        />
+      )}
     </div>
   );
 }
