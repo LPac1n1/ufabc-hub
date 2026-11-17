@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
-import { IconeBusca } from "@/components/icones";
+import { IconeAlerta, IconeBusca, IconeCheck } from "@/components/icones";
 import { PopUpDetalhes } from "./popup-detalhes";
 import { TurmaBuscaCard } from "./turma-busca-card";
 import { getEstado } from "@/lib/montador/conflitos";
@@ -73,7 +73,7 @@ export function BuscaDisciplinas({ ativa, disciplinas, naGrade, onAdicionar, onR
   const [busca, setBusca] = useState("");
   const [turno, setTurno] = useState(TODOS);
   const [campus, setCampus] = useState(TODOS);
-  const [verificar, setVerificar] = useState(true);
+  const [ocultarConflitos, setOcultarConflitos] = useState(true);
   const [quantidade, setQuantidade] = useState(TAMANHO_DO_LOTE);
   const [detalhe, setDetalhe] = useState<Disciplina | null>(null);
   const [aberto, setAberto] = useState(false);
@@ -97,13 +97,28 @@ export function BuscaDisciplinas({ ativa, disciplinas, naGrade, onAdicionar, onR
     [disciplinas],
   );
 
-  const resultados = useMemo(() => {
+  const filtradas = useMemo(() => {
     const termos = semAcento(buscaAdiada).split(/\s+/).filter(Boolean);
     return indice
       .filter(({ d }) => (turno === TODOS || d.turno === turno) && (campus === TODOS || d.campus === campus))
       .filter(({ alvo }) => termos.every((t) => alvo.includes(t)))
       .map(({ d }) => d);
   }, [indice, buscaAdiada, turno, campus]);
+
+  const { resultados, ocultas } = useMemo(() => {
+    if (!ocultarConflitos) return { resultados: filtradas, ocultas: 0 };
+    let ocultas = 0;
+    const resultados = filtradas.filter((d) => {
+      const { tipo } = getEstado(d, naGrade, true);
+      if (tipo === "duplicada") return false;
+      if (tipo === "conflito") {
+        ocultas++;
+        return false;
+      }
+      return true;
+    });
+    return { resultados, ocultas };
+  }, [filtradas, naGrade, ocultarConflitos]);
 
   const visiveis = resultados.slice(0, quantidade);
   const temMais = quantidade < resultados.length;
@@ -129,7 +144,6 @@ export function BuscaDisciplinas({ ativa, disciplinas, naGrade, onAdicionar, onR
     return () => observador.disconnect();
   }, [temMais, quantidade]);
 
-  // Qualquer mudança de filtro volta para o primeiro lote.
   const mudar = <T,>(set: (v: T) => void) => (v: T) => { set(v); setQuantidade(TAMANHO_DO_LOTE); };
 
   const abrir = useCallback((d: Disciplina) => { setDetalhe(d); setAberto(true); }, []);
@@ -172,24 +186,48 @@ export function BuscaDisciplinas({ ativa, disciplinas, naGrade, onAdicionar, onR
       <section aria-label="Filtros" className="mt-1 grid gap-3.5 rounded-[18px] border border-grade-line bg-grade-surface p-3.5">
         <Opcoes legenda="Turno" valor={turno} opcoes={turnos} onChange={mudar(setTurno)} />
         <Opcoes legenda="Campus" valor={campus} opcoes={campi} onChange={mudar(setCampus)} />
-        <div className="flex items-center justify-between gap-3 border-t border-grade-line pt-3.5">
-          <div>
-            <p id="rotulo-conflitos" className="text-sm font-semibold">Verificar conflitos</p>
-            <p className="text-xs text-grade-mute">Impede adicionar turmas com horário sobreposto.</p>
-          </div>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={verificar}
-            aria-labelledby="rotulo-conflitos"
-            onClick={() => setVerificar((v) => !v)}
-            className={`relative h-8 w-14 shrink-0 rounded-full transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-grade-ink motion-reduce:transition-none ${
-              verificar ? "bg-grade-accent" : "bg-grade-line"
-            }`}
+      </section>
+
+      <section
+        aria-label="Conflitos de horário"
+        className={`mt-3 flex items-center gap-3 rounded-[18px] border bg-grade-surface p-3.5 transition-colors motion-reduce:transition-none ${
+          ocultarConflitos ? "border-grade-line" : "border-grade-danger/30"
+        }`}
+      >
+        <span
+          aria-hidden="true"
+          className={`grid size-11 shrink-0 place-items-center rounded-xl ${
+            ocultarConflitos ? "bg-grade-accent/12 text-grade-accent" : "bg-grade-danger/12 text-grade-danger"
+          }`}
+        >
+          {ocultarConflitos ? <IconeCheck className="size-5" /> : <IconeAlerta className="size-5" />}
+        </span>
+        <div className="min-w-0 flex-1">
+          <p id="rotulo-conflitos" className="text-sm font-bold leading-tight">Ocultar conflitos</p>
+          <p
+            id="descricao-conflitos"
+            className={`mt-0.5 text-xs leading-snug ${ocultarConflitos ? "text-grade-mute" : "font-semibold text-grade-danger"}`}
           >
-            <span className={`absolute left-1 top-1 size-6 rounded-full bg-white shadow transition-transform motion-reduce:transition-none ${verificar ? "translate-x-6" : ""}`} />
-          </button>
+            {!ocultarConflitos
+              ? "Exibindo turmas com conflito"
+              : ocultas === 0
+                ? "Nenhuma turma com conflito de horário"
+                : `${ocultas.toLocaleString("pt-BR")} ${ocultas === 1 ? "turma oculta" : "turmas ocultas"} por conflito`}
+          </p>
         </div>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={ocultarConflitos}
+          aria-labelledby="rotulo-conflitos"
+          aria-describedby="descricao-conflitos"
+          onClick={() => mudar(setOcultarConflitos)(!ocultarConflitos)}
+          className={`relative h-8 w-14 shrink-0 rounded-full transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-grade-ink motion-reduce:transition-none ${
+            ocultarConflitos ? "bg-grade-accent" : "bg-grade-line"
+          }`}
+        >
+          <span className={`absolute left-1 top-1 size-6 rounded-full bg-white shadow transition-transform motion-reduce:transition-none ${ocultarConflitos ? "translate-x-6" : ""}`} />
+        </button>
       </section>
 
       <p aria-live="polite" className="mx-1 mb-2 mt-4 text-[13px] font-semibold text-grade-mute">
@@ -199,14 +237,14 @@ export function BuscaDisciplinas({ ativa, disciplinas, naGrade, onAdicionar, onR
       {disciplinas.length === 0 ? (
         <Vazio>Ainda não há turmas cadastradas para o quadrimestre atual.</Vazio>
       ) : resultados.length === 0 ? (
-        <Vazio>Nenhuma turma encontrada. Tente outro nome ou limpe os filtros de turno e campus.</Vazio>
+        <Vazio>Nenhuma turma encontrada. Tente outro nome, limpe os filtros de turno e campus{ocultas > 0 && " ou desative o ocultar conflitos"}.</Vazio>
       ) : (
         <ul className="grid gap-2.5">
           {visiveis.map((d) => (
             <TurmaBuscaCard
               key={d.id}
               disciplina={d}
-              estado={getEstado(d, naGrade, verificar)}
+              estado={getEstado(d, naGrade, true)}
               onInfo={abrir}
               onAdicionar={onAdicionar}
               onRemover={onRemover}
