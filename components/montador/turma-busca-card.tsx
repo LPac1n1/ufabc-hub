@@ -36,7 +36,14 @@ export function TurmaBuscaCard({ disciplina: d, estado, onInfo, onAdicionar, onR
       }`}
     >
       <div className="flex items-start justify-between gap-2">
-        <h3 className="text-[17px] font-bold leading-tight tracking-[-0.01em]">{d.nome}</h3>
+        <div className="min-w-0">
+          {d.curso && (
+            <p className="mb-1.5 text-[10px] font-semibold uppercase leading-tight tracking-wide text-grade-mute">
+              {d.curso}
+            </p>
+          )}
+          <h3 className="text-[17px] font-bold leading-tight tracking-[-0.01em]">{d.nome}</h3>
+        </div>
         <button
           type="button"
           onClick={() => onInfo(d)}
