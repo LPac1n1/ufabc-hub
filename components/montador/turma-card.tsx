@@ -12,7 +12,7 @@ type Props = {
   onRemover: (d: Disciplina) => void;
 };
  
-export function DisciplinaCard({ disciplina: d, onDetalhes, onRemover }: Props) {
+export function TurmaCard({ disciplina: d, onDetalhes, onRemover }: Props) {
   return (
     <li className="grid grid-cols-[3.625rem_1fr] gap-x-3 overflow-hidden rounded-[14px] border border-grade-line bg-grade-surface">
       <div

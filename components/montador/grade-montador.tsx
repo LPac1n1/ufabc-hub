@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { DisciplinaCard } from "./disciplina-card";
+import { TurmaCard } from "./turma-card";
 import { Grade, type Filtro } from "./grade";
 import { MenuInferior } from "./menu-inferior";
 import { PopUpDetalhes } from "./popup-detalhes";
@@ -98,7 +98,7 @@ export function GrandeMontador({ disciplinas, quadrimestre, onRemover, onDesfaze
         ) : (
           <ul className="grid gap-2">
             {disciplinas.map((d) => (
-              <DisciplinaCard key={d.id} disciplina={d} onDetalhes={abrir} onRemover={remover} />
+              <TurmaCard key={d.id} disciplina={d} onDetalhes={abrir} onRemover={remover} />
             ))}
           </ul>
         )}
