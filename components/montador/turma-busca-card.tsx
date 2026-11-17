@@ -1,4 +1,5 @@
 import { IconeAlerta, IconeInfo, IconeAdicionar, IconeLixeira } from "@/components/icones";
+import { TurnoBadge } from "@/components/montador/turno-badge";
 import type { Estado } from "@/lib/montador/conflitos";
 import {
   DIAS,
@@ -48,18 +49,24 @@ export function TurmaBuscaCard({ disciplina: d, estado, onInfo, onAdicionar, onR
 
       <div className="mt-1.5 flex flex-wrap gap-1">
         <em className={`${chip} !border-grade-accent !bg-grade-accent text-white`}>Turma {d.turma}</em>
-        <em className={chip}>{d.turno}</em>
+
+        <TurnoBadge turno={d.turno} />
+
         {d.campus && <em className={chip}>{d.campus}</em>}
       </div>
 
-      <p className="mt-2.5 text-xs leading-snug text-grade-mute">
+      <div className="mt-3 grid gap-0.5 border-l-2 border-grade-accent/60 pl-2.5">
         {getDocentesPorTipo(d).map((x) => (
-          <span key={`${x.tipo}-${x.nome}`} className="block">
-            {x.tipo && <b className="mr-1 font-semibold text-grade-ink">{x.tipo}</b>}
-            {x.nome}
-          </span>
+          <div key={`${x.tipo}-${x.nome}`} className="flex items-baseline gap-2">
+            {x.tipo && (
+              <span className="min-w-13 text-[10px] font-semibold uppercase tracking-wide text-grade-mute">
+                {x.tipo}
+              </span>
+            )}
+            <span className="text-sm font-bold leading-snug text-grade-ink">{x.nome}</span>
+          </div>
         ))}
-      </p>
+      </div>
 
       <ul className="mt-3 rounded-xl border border-grade-line bg-grade-bg px-3" aria-label="Horários">
         {d.aulas.map((s) => {
@@ -82,12 +89,21 @@ export function TurmaBuscaCard({ disciplina: d, estado, onInfo, onAdicionar, onR
         })}
       </ul>
 
-      <p
-        className="mt-3 font-mono text-[11px]"
+      <div
+        role="group"
         aria-label={`Teoria ${d.tpie.t}, prática ${d.tpie.p}, individual ${d.tpie.i}, extensão ${d.tpie.e}. ${formatCreditos(d.creditos)}`}
       >
-        <b className="font-semibold">TPIE {formatTpie(d)}</b> · {formatCreditos(d.creditos)}
-      </p>
+        <div aria-hidden="true" className="mt-3 flex flex-wrap gap-2">
+          <p className="inline-flex items-baseline gap-1.5 rounded-lg border border-grade-line bg-grade-bg px-2.5 py-1.5">
+            <span className="text-[10px] font-semibold uppercase tracking-wide text-grade-mute">TPIE</span>
+            <span className="font-mono text-[13px] font-bold">{formatTpie(d)}</span>
+          </p>
+          <p className="inline-flex items-baseline gap-1.5 rounded-lg border border-grade-line bg-grade-bg px-2.5 py-1.5">
+            <span className="text-[10px] font-semibold uppercase tracking-wide text-grade-mute">Créditos</span>
+            <span className="font-mono text-[13px] font-bold">{d.creditos}</span>
+          </p>
+        </div>
+      </div>
 
       {estado.tipo === "conflito" && (
         <div id={avisoId} className="mt-3 rounded-xl border border-grade-danger/30 bg-grade-danger/10 px-3 py-2.5 text-[13px] leading-snug">
